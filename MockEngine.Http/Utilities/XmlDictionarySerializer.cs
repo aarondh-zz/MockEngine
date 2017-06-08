@@ -12,10 +12,10 @@ namespace MockEngine.Http.Utilities
 {
     public class XmlDictionarySerializer : ISerializer
     {
-        private string _rootElementName;
-        public XmlDictionarySerializer ( string rootElementName )
+        private string _defaultRootElementName;
+        public XmlDictionarySerializer ( string defaultRootElementName)
         {
-            _rootElementName = rootElementName;
+            _defaultRootElementName = defaultRootElementName;
         }
         public void Serialize(Stream stream, object graph )
         {
@@ -28,7 +28,34 @@ namespace MockEngine.Http.Utilities
         }
         void Serialize(XmlWriter writer, IDictionary<object, object> graph)
         {
-            Serialize(writer, graph, _rootElementName);
+            if ( graph.Count == 1)
+            {
+                foreach( var entry in graph )
+                {
+                    Serialize(writer, entry.Value, entry.Key.ToString());
+                }
+            }
+            else
+            {
+                Serialize(writer, graph, _defaultRootElementName);
+            }
+        }
+        void Serialize(XmlWriter writer, object value, string localName)
+        {
+            if (value is IList<object>)
+            {
+                Serialize(writer, value as IList<object>, localName);
+            }
+            else if (value is IDictionary<object, object>)
+            {
+                Serialize(writer, value as IDictionary<object, object>, localName);
+            }
+            else
+            {
+                writer.WriteStartElement(localName);
+                writer.WriteValue(value);
+                writer.WriteEndElement();
+            }
         }
         void Serialize(XmlWriter writer, IDictionary<object, object> graph, string localName)
         {
@@ -38,18 +65,7 @@ namespace MockEngine.Http.Utilities
                 foreach (var entry in graph)
                 {
                     var childName = entry.Key.ToString();
-                    if (entry.Value is IList<object>)
-                    {
-                        Serialize(writer, entry.Value as IList<object>, childName);
-                    }
-                    else if (entry.Value is IDictionary<object, object>)
-                    {
-                        Serialize(writer, entry.Value as IDictionary<object, object>, childName);
-                    }
-                    else
-                    {
-                        writer.WriteValue(entry.Value);
-                    }
+                    Serialize(writer, entry.Value, childName);
                 }
             }
             writer.WriteEndElement();

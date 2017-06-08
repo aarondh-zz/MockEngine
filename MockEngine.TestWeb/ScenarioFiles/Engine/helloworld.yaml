@@ -1,0 +1,8 @@
+﻿path: /api/mocktest/helloworld
+actions:
+ - response:
+     body:
+       html:
+         head:
+           title: Hello world
+         body: Hello World!
