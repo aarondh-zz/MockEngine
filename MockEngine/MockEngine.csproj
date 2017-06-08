@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0ED70842-FB96-4281-BD4B-1B8389E9C7DE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MockEngine</RootNamespace>
+    <AssemblyName>MockEngine</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ClearScript, Version=5.4.9.0, Culture=neutral, PublicKeyToken=4d98b1780673c126, processorArchitecture=MSIL">
+      <HintPath>..\packages\ClearScript.V8.5.4.9\lib\net40\ClearScript.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="YamlDotNet, Version=4.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.4.2.1\lib\net35\YamlDotNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Configuration\SenarioResolverSettingConfigurationElement.cs" />
+    <Compile Include="Configuration\AssemblyConfigurationElement.cs" />
+    <Compile Include="Configuration\GenericConfigurationElementCollection.cs" />
+    <Compile Include="Configuration\MockEngineSettings.cs" />
+    <Compile Include="Interfaces\ILogProvider.cs" />
+    <Compile Include="Interfaces\IMockAssemblySettings.cs" />
+    <Compile Include="Interfaces\IMockComponent.cs" />
+    <Compile Include="Interfaces\IMockEngine.cs" />
+    <Compile Include="Interfaces\IMockContext.cs" />
+    <Compile Include="Interfaces\IMockEngineSettings.cs" />
+    <Compile Include="Interfaces\IMockEngineResponse.cs" />
+    <Compile Include="Interfaces\IScenario.cs" />
+    <Compile Include="Internal\MockEngine.cs" />
+    <Compile Include="Internal\DynamicDataRow.cs" />
+    <Compile Include="Internal\MockEngineResponse.cs" />
+    <Compile Include="Interfaces\IScenarioResolverSettings.cs" />
+    <Compile Include="Interfaces\ITypeResolver.cs" />
+    <Compile Include="Models\MockRequest.cs" />
+    <Compile Include="Resolvers\DefaultTypeResolver.cs" />
+    <Compile Include="Resolvers\FileScenarioResolver.cs" />
+    <Compile Include="Resolvers\ResourceScenarioResolver.cs" />
+    <Compile Include="Internal\ScenarioManager.cs" />
+    <Compile Include="Internal\Tables.cs" />
+    <Compile Include="Interfaces\IScenarioResolver.cs" />
+    <Compile Include="MockEngineException.cs" />
+    <Compile Include="MockEngineFactory.cs" />
+    <Compile Include="Models\MockAction.cs" />
+    <Compile Include="Models\MockTable.cs" />
+    <Compile Include="Models\MockGlobal.cs" />
+    <Compile Include="Models\MockScenario.cs" />
+    <Compile Include="Models\MockMessage.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\TraceLogProvider.cs" />
+    <Compile Include="Utilities\XmlExtensions.cs" />
+    <Compile Include="Utilities\YamlExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ClearScriptV8-32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ClearScriptV8-64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="concrt140.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="msvcp140.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="v8-ia32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="v8-x64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="vccorlib140.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="vcruntime140.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Licenses\ClearScript.main.license" />
+    <None Include="Licenses\v8.main.license" />
+    <None Include="Licenses\v8.strongtalk.license" />
+    <None Include="Licenses\v8.v8.license" />
+    <None Include="Licenses\v8.valgrind.license" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+if not exist "$(TargetDir)" md "$(TargetDir)"
+xcopy /s /y "$(SolutionDir)packages\ClearScript.V8.5.4.9\tools\native\x86\*.*" "$(TargetDir)"
+if not exist "$(TargetDir)" md "$(TargetDir)"
+xcopy /s /y "$(SolutionDir)packages\ClearScript.V8.5.4.9\tools\native\amd64\*.*" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

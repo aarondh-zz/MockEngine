@@ -1,0 +1,117 @@
+﻿global: 
+  tables: 
+    - name: ValidStores
+      rows:
+        - storeId: 101
+          valid: true
+        - storeId: 102
+          valid: false
+        - storeId: 103
+          valid: true
+        - storeId: 104
+          valid: true
+        - storeId: 105
+          valid: false
+        - storeId: 106
+          valid: true
+path: mock=true           
+request:
+  parameterName: testRequest
+  type: MockEngine.TestWeb.Models.TestRequestMessage,MockEngine.TestWeb
+actions: 
+    - name: action for valid store
+      when: tables.Exists("ValidStores","storeId = " + storeId + " and valid = 'true'")
+      before: a = 1 + 2
+      after: b = a + 1
+      log: we did action for valid store <<storeId>>
+      response: 
+        body: &priceResponse
+          storeNumber: <<storeId>>
+          gmtDateTime: 1/1/2017 8:15pm
+          status: 
+            statusCode: 200
+            errorCode: 800
+            message: Something good happened
+          header:
+            transaction:
+              orderToken: 123456789
+              currenncyCode: USD
+            user:
+              currentTierNumber: 1
+              displayName: Fred Flintstone
+              partnerNumber: ~
+          cart:
+            discounts:
+              - amt: .10
+                description: because Fred is a good guy
+                code: 42
+                itemOnly: false
+              - amt: .05
+                description: because Wilman has to put up with Fred
+                code: 43
+                itemOnly: false
+            items:
+                - qty: 1
+                  sku: 
+                    code: 124567890
+                    name: Tall Latte
+                    status:
+                      statusCode: 200
+                      errorCode: 200
+                      message: the lazy fox jumped over the sleeping dog
+                    value: well I really like it
+                    posStatus: ~
+                  price: 5.43
+                  discounts:
+                    - amt: .05
+                      description: happy hour
+                      code: 44
+                      itemOnly: true
+                  childItems:
+                    - qty: 1
+                      sku: 
+                        code: 9876543210
+                        name: Vanilla Soy Milk
+                        status:
+                          statusCode: 200
+                          errorCode: 200
+                          message: the lazy fox jumped over the sleeping dog
+                        value: It''s not milk
+                        posStatus: ~
+                      price: 0.50
+
+            promotions:
+              - code: 42
+                type: It is summer
+                status:
+                    statusCode: 200
+                    errorCode: 200
+                    message: the lazy fox jumped over the sleeping dog
+          totalAmount: 5.83
+          subtotalAmount: 5.83
+          taxAmount: 2.42
+          discountAmount: 0.0
+          taxs:
+            - name: Washington State Sales Tax
+              amount: 2.20
+            - name: Bellevue Sales Tax
+              amount: 0.22
+            
+
+
+
+
+    - name: action for invalid store (from table)
+      when: tables.Exists("ValidStores","storeId = " + storeId + " and valid = 'false'")
+      log:  we did action for invalid store <<storeId>>
+      response: 
+        statusCode: BadRequest
+        bodyType: MockEngine.TestWeb.Models.TestErrorMessage, MockEngine.TestWeb
+        body: 
+          errorCode: 843
+          message: Invalid storeId
+    - name: otherwise
+      response:
+        statusCode: NotFound
+        reason: No matching action in scenario test2
+            

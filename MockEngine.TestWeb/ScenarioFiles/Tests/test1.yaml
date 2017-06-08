@@ -1,0 +1,214 @@
+﻿global: 
+  tables: 
+    - name: ValidStores
+      rows:
+        - storeId: 101
+          ucp: true
+        - storeId: 102
+          ucp: false
+        - storeId: 103
+          ucp: true
+        - storeId: 104
+          ucp: true
+        - storeId: 105
+          ucp: false
+        - storeId: 106
+          ucp: true
+path: /api/mocktest/testmethod3
+request:
+  parameterName: testRequest
+  type: MockEngine.TestWeb.Models.TestRequestMessage,MockEngine.TestWeb
+          
+actions: 
+    - name: action 1
+      when: numberParameter1 == 1
+      before: a = 1 + 2
+      log: we did action 1
+      response: 
+        bodyType: MockEngine.TestWeb.Models.TestResponseMessage,MockEngine.TestWeb
+        body:
+          success: true
+          message: numberParameter1 is equal to 1
+          aNumber: 42
+      after: b = a + 1
+
+    - name: action 2
+      when: numberParameter1 == 2 && booleanParameter2 == true
+      description: This case checks to see if the numberParameter is 2 and the boolean parameter is true
+      before: a = 1 + 2
+      log: we did action 2
+      response: 
+        bodyType: MockEngine.TestWeb.Models.TestResponseMessage,MockEngine.TestWeb
+        body:
+          success: true
+          message: numberParameter1 is equal to 2 and booleanParamter2 is true
+          aNumber: 42
+      after: response.Content.ANumber = a + 1
+
+
+    - name: action 3
+      description: this action should fail with an undefined variable 'fubar'
+      when: numberParameter1 == 3
+      before: a = 1 + 2
+      log: we did action 3
+      response: 
+        bodyType: MockEngine.TestWeb.Models.TestResponseMessage,MockEngine.TestWeb
+        body:
+          success: true
+          message: numberParameter1 is equal to 3
+          aNumber: 42
+      after: b = a + 1 + fubar
+
+    - name: action 4
+      description: this action tests to make sure we can deserialize enums and dates correctly
+      when: numberParameter1 == 4
+      before: a = 1 + 2
+      log: we did action 4
+      response: 
+        bodyType: MockEngine.TestWeb.Models.TestResponseMessage,MockEngine.TestWeb
+        body:
+          success: true
+          message: numberParameter1 is equal to 4
+          aNumber: 42
+          anEnum: 0
+          aDateTime: 1/1/2017 8:15pm
+      after: b = a + 1
+
+    - name: action 5 (test complex dynamic response)
+      when: numberParameter1 == 5
+      before: a = 1 + 2
+      after: b = a + 1
+      log: we did action 5
+      response: 
+        body:
+          storeNumber: 101
+          gmtDateTime: 1/1/2017 8:15pm
+          status: 
+            statusCode: 200
+            errorCode: 800
+            message: Something bad happened
+          header:
+            transaction:
+              orderToken: 123456789
+              currenncyCode: USD
+            user:
+              currentTierNumber: 1
+              displayName: Fred Flintstone
+              partnerNumber: ~
+          cart:
+            discounts:
+              - amt: .10
+                description: because Fred is a good guy
+                code: 42
+                itemOnly: false
+              - amt: .05
+                description: because Wilman has to put up with Fred
+                code: 43
+                itemOnly: false
+            items:
+                - qty: 1
+                  sku: 
+                    code: 124567890
+                    name: Tall Latte
+                    status:
+                      statusCode: 200
+                      errorCode: 200
+                      message: the lazy fox jumped over the sleeping dog
+                    value: well I really like it
+                    posStatus: ~
+                  price: 5.43
+                  discounts:
+                    - amt: .05
+                      description: happy hour
+                      code: 44
+                      itemOnly: true
+                  childItems:
+                    - qty: 1
+                      sku: 
+                        code: 9876543210
+                        name: Vanilla Soy Milk
+                        status:
+                          statusCode: 200
+                          errorCode: 200
+                          message: the lazy fox jumped over the sleeping dog
+                        value: It''s not milk
+                        posStatus: ~
+                      price: 0.50
+
+            promotions:
+              - code: 42
+                type: It is summer
+                status:
+                    statusCode: 200
+                    errorCode: 200
+                    message: the lazy fox jumped over the sleeping dog
+          totalAmount: 5.83
+          subtotalAmount: 5.83
+          taxAmount: 2.42
+          discountAmount: 0.0
+          taxs:
+            - name: Washington State Sales Tax
+              amount: 2.20
+            - name: Bellevue Sales Tax
+              amount: 0.22
+            
+
+
+
+    - name: action 6
+      description: this action tests to make sure we can deserialize xml correctly
+      when: numberParameter1 == 6
+      before: a = 1 + 2
+      log: we did action 4
+      response: 
+        bodyType: MockEngine.TestWeb.Models.TestResponseMessage,MockEngine.TestWeb
+        bodyXml: >
+            <TestResponseMessage xmlns="http://schemas.datacontract.org/2004/07/MockEngine.TestWeb.Models" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+              <ADateTime>2017-05-31T21:38:08.801292Z</ADateTime>
+              <AGuid>6F615105-5672-4CF1-9456-E62C84F02591</AGuid>
+              <ANumber>42</ANumber>
+              <AnEnum>Two</AnEnum>
+              <Message>This is a test message with numberParameter1 = {{numberParameter1}}</Message>
+              <Success>true</Success>
+            </TestResponseMessage>
+      after: b = a + 1
+
+    - name: action 7
+      description: this action tests to make sure see all raw yaml nodes
+      when: numberParameter1 == 7
+      before: a = 1 + 2
+      log: we did action 6
+      response: 
+        bodyType: MockEngine.TestWeb.Models.TestResponseMessage,MockEngine.TestWeb
+        body:
+          success: true
+          message: numberParameter1 is equal to 4
+          aList:
+            $each:
+              var: x
+              in: tables.Rows("ValidStores")
+              do: <<x.storeId>>
+          aNumber: 42
+          anEnum: 0
+          aDateTime: 1/1/2017 8:15pm
+      after: b = a + 1
+
+    - name: action 101 (valid store in table)
+      when: tables.Exists("ValidStores","storeId = " + numberParameter1 + " and ucp = 'true'")
+      before: a = 1 + 2
+      log: we did the valid stores action
+      response: 
+        bodyType: MockEngine.TestWeb.Models.TestResponseMessage,MockEngine.TestWeb
+        body:
+          success: true
+          message: the store was found and the ucp column was 'true'
+          aNumber: 42
+          anEnum: 0
+          aDateTime: 1/1/2017 8:15pm
+      after: b = a + 1
+
+    - name: otherwise
+      response:
+        statusCode: NotFound
+        reason: No matching action in scenario test1
+            
