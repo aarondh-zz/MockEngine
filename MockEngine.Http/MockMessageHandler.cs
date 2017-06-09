@@ -1,4 +1,5 @@
 ﻿using MockEngine.Http.Configuration;
+using MockEngine.Http.Formatters;
 using MockEngine.Http.Interfaces;
 using MockEngine.Http.Utilities;
 using MockEngine.Interfaces;
@@ -83,20 +84,14 @@ namespace MockEngine.Http
                                 }
                                 else
                                 {
-                                    var serializer = new DataContractSerializer(scenario.RequestType);
-                                    dynamicParameters.AddProperty(scenario.RequestParameterName, serializer.ReadObject(await request.Content.ReadAsStreamAsync()));
-                                }
-                            }
-                            else if (contentType == "application/json")
-                            {
-                                var serializer = new JsonSerializer();
-                                using (var reader = new StreamReader(await request.Content.ReadAsStreamAsync()))
-                                {
-                                    dynamicParameters.AddProperty(scenario.RequestParameterName, serializer.Deserialize(reader, scenario.RequestType));
+                                    var contentGraph = await request.Content.ReadAsAsync(scenario.RequestType);
+                                    dynamicParameters.AddProperty(scenario.RequestParameterName, contentGraph);
                                 }
                             }
                             else if (contentType == "application/yaml")
                             {
+                                // TBD: Note that I should be able to do this with the YamlMediaTypeFormatter
+                                // but it is currently being ignored
                                 var content = await request.Content.ReadAsStringAsync();
                                 if (scenario.RequestType == typeof(DynamicObject))
                                 {
@@ -109,7 +104,8 @@ namespace MockEngine.Http
                             }
                             else
                             {
-                                dynamicParameters.AddProperty(scenario.RequestParameterName, await request.Content.ReadAsStringAsync());
+                                var contentGraph = await request.Content.ReadAsAsync(scenario.RequestType);
+                                dynamicParameters.AddProperty(scenario.RequestParameterName, contentGraph);
                             }
                         }
                         var result = _mockEngine.Invoke(scenario.Name, dynamicParameters);
@@ -119,34 +115,24 @@ namespace MockEngine.Http
                             response.RequestMessage = request;
                             if (result.Content != null)
                             {
-                                Type responseType = result.Content.GetType();
+                                Type contentType = result.Content.GetType();
                                 if (WillAcceptType(request.Headers.Accept, "application/xml"))
                                 {
-                                    bool isDataContract = responseType.GetCustomAttribute<DataContractAttribute>() != null;
-                                    if (isDataContract)
-                                    {
-                                        response.Content = new StringContent(SerializeDataContractAsXml(result.Content, Encoding.UTF8), Encoding.UTF8, "application/xml");
-                                    }
-                                    else
-                                    {
-                                        response.Content = new StringContent(SerializeAsXml(result.Content, Encoding.UTF8), Encoding.UTF8, "application/xml");
-                                    }
+                                    response.Content = new StringContent(SerializeAsXml(result.Content, Encoding.UTF8), Encoding.UTF8, "application/xml");
                                 }
                                 else if (WillAcceptType(request.Headers.Accept, "application/json"))
                                 {
-                                    response.Content = new StringContent(SerializeAsJson(result.Content, Encoding.UTF8), Encoding.UTF8, "application/json");
+                                    response.Content = new ObjectContent(contentType, result.Content, new JsonMediaTypeFormatter(), "application/json");
                                 }
-                                else if (WillAcceptType(request.Headers.Accept, "application/yaml"))
+                                else if (WillAcceptType(request.Headers.Accept, "application/yaml") || WillAcceptType(request.Headers.Accept, "*/*"))
                                 {
-                                    response.Content = new StringContent(result.Content.ToYamlString(), Encoding.UTF8, "application/yaml");
-                                }
-                                else if (WillAcceptType(request.Headers.Accept, "*/*"))
-                                {
-                                    response.Content = new StringContent(SerializeAsJson(result.Content, Encoding.UTF8), Encoding.UTF8, "application/json");
+                                    response.Content = new ObjectContent(contentType, result.Content, new YamlMediaTypeFormatter(), "application/yaml");
                                 }
                                 else
                                 {
-                                    throw new NotImplementedException();
+                                    response.Content = new StringContent("response media type is not supported");
+                                    response.StatusCode = HttpStatusCode.UnsupportedMediaType;
+                                    response.ReasonPhrase = "response media type is not supported";
                                 }
                             }
                             return response;
@@ -190,24 +176,16 @@ namespace MockEngine.Http
             serializer.Serialize(jsonWriter, graph);
             return stringWriter.ToString();
         }
-        private DataContractSerializer GetDataContractSerializer(Type type)
-        {
-            return new DataContractSerializer(type);
-        }
-        private string SerializeDataContractAsXml(object graph, Encoding encoding)
-        {
-            var serializer = GetDataContractSerializer(graph.GetType());
-            using (var stream = new MemoryStream())
-            {
-                serializer.WriteObject(stream, graph);
-                stream.Flush();
-                stream.Seek(0L, SeekOrigin.Begin);
-                var reader = new StreamReader(stream, encoding);
-                return reader.ReadToEnd();
-            }
-        }
         private ISerializer GetXmlSerializer(Type type)
         {
+            if ( DataContractHelper.IsDataContractType(type))
+            {
+                return new Utilities.DataContractSerializer(type);
+            }
+            if (type == typeof(DynamicXml))
+            {
+                return new DynamicXmlSerializer();
+            }
             if (typeof(IDictionary<object, object>).IsAssignableFrom(type))
             {
                 return new XmlDictionarySerializer("data");

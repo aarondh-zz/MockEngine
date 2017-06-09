@@ -1,0 +1,10 @@
+﻿path: /api/mocktest/helloworldxml
+actions:
+ - response:
+     bodyXml: >
+       <html>
+         <head>
+           <title>Hello world</title>
+           <body>Hello World!</body>
+         </head>
+       </html>

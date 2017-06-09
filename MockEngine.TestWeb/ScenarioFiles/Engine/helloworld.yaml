@@ -1,4 +1,4 @@
-﻿path: /api/mocktest/helloworld
+﻿path: /api/mocktest/helloworld$
 actions:
  - response:
      body:

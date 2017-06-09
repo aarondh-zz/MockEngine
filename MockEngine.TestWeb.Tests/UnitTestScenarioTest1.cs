@@ -6,6 +6,8 @@ using System.Diagnostics;
 using MockEngine.Utilities;
 using System.Runtime.Serialization;
 using System.IO;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace MockEngine.TestWeb.Tests
 {
@@ -127,6 +129,48 @@ namespace MockEngine.TestWeb.Tests
             var reader = new StreamReader(stream);
             var result = reader.ReadToEnd();
             Trace.WriteLine($"response message xml:\n{result}");
+        }
+        [TestMethod]
+        public void TestRequestXml()
+        {
+            var request = new TestRequestMessage()
+            {
+                ANumber = 42,
+                AString = "This is a test string",
+                AList = new List<string>(new string[] { "One", "Two", "Three" })
+            };
+            var serializer = new DataContractSerializer(typeof(TestRequestMessage));
+            var stream = new MemoryStream();
+            serializer.WriteObject(stream, request);
+            stream.Seek(0, SeekOrigin.Begin);
+            var reader = new StreamReader(stream);
+            var result = reader.ReadToEnd();
+            Trace.WriteLine($"request message xml:\n{result}");
+        }
+        [TestMethod]
+        public void TestRequestJson()
+        {
+            var request = new TestRequestMessage()
+            {
+                ANumber = 42,
+                AString = "This is a test string",
+                AList = new List<string>(new string[] { "One", "Two", "Three" })
+            };
+            var serializer = new JsonSerializer();
+            var stringWriter = new StringWriter();
+            serializer.Serialize(stringWriter, request);
+            Trace.WriteLine($"request message json:\n{stringWriter.ToString()}");
+        }
+        [TestMethod]
+        public void TestRequestYaml()
+        {
+            var request = new TestRequestMessage()
+            {
+                ANumber = 42,
+                AString = "This is a test string",
+                AList = new List<string>(new string[] { "One", "Two", "Three" })
+            };
+            Trace.WriteLine($"request message yaml:\n{request.ToYamlString()}");
         }
         [TestMethod]
         public void TestDynamicResponse()

@@ -124,6 +124,7 @@
     <Content Include="ScenarioFiles\Tests\test2.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="ScenarioFiles\Engine\helloworldXml.yaml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Net;
+using System.Dynamic;
 
 namespace MockEngine.TestWeb.Tests
 {
@@ -36,6 +37,15 @@ namespace MockEngine.TestWeb.Tests
             var testResponseMessage = await response.Content.ReadAsAsync<TestResponseMessage>();
 
             return testResponseMessage;
+        }
+        static async Task<ExpandoObject> SendTestMessageAndReadDynamicAsync(string requestUri, int numberParamter1, TestRequestMessage testRequestMessage, string scenario, bool boolParameter2, string textParameter3, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+        {
+            HttpResponseMessage response = await SendTestMessageAsync(requestUri, numberParamter1, testRequestMessage, scenario, boolParameter2, textParameter3);
+            Assert.AreEqual(expectedStatusCode, response.StatusCode, $"Expected status code {expectedStatusCode} but got {response.StatusCode}");
+
+            var graph = await response.Content.ReadAsAsync<ExpandoObject>();
+
+            return graph;
         }
         [TestMethod]
         public void TestReady()
@@ -102,10 +112,12 @@ namespace MockEngine.TestWeb.Tests
         {
             var requestMessage = new TestRequestMessage();
 
-            var response = SendTestMessageAndReadAsync($"/api/mocktest/testMethod2", 5, requestMessage, "test1", false, "My text parameter3");
+            var response = SendTestMessageAndReadDynamicAsync($"/api/mocktest/testMethod2", 5, requestMessage, "test1", false, "My text parameter3");
             response.Wait();
 
+            dynamic result = response.Result;
             Trace.WriteLine($"response message:\n{response.Result.ToYamlString()}");
+            Assert.AreEqual("101", result.storeNumber);
         }
         [TestMethod]
         public void TestMatchingSixthAction()
@@ -160,10 +172,11 @@ namespace MockEngine.TestWeb.Tests
         {
             var requestMessage = new TestRequestMessage();
 
-            var response = SendTestMessageAndReadAsync("/api/mocktest/testMethod2", 5, requestMessage, "test1", false, "My text parameter3");
+            var response = SendTestMessageAndReadDynamicAsync("/api/mocktest/testMethod2", 5, requestMessage, "test1", false, "My text parameter3");
             response.Wait();
-
+            dynamic result = response.Result;
             Trace.WriteLine($"response message:\n{response.Result.ToYamlString()}");
+            Assert.AreEqual("101", result.storeNumber);
         }
         [TestMethod]
         public void TestMessageHandlerResponse()

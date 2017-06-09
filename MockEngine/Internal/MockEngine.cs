@@ -422,6 +422,10 @@ namespace MockEngine.Internal
         }
         private object DeserializeXml( string xmlText, Type type)
         {
+            if (type == typeof(object))
+            {
+                return DynamicXml.Parse(xmlText);
+            }
             var serializer = new DataContractSerializer(type);
             using (var reader = new StringReader(xmlText))
             {

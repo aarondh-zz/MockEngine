@@ -1,6 +1,7 @@
 ﻿using MockEngine.Http.Interfaces;
 using MockEngine.Http.Utilities;
 using MockEngine.Interfaces;
+using MockEngine.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
