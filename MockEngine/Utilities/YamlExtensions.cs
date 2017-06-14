@@ -20,10 +20,11 @@ namespace MockEngine.Utilities
                 .WithNamingConvention(new CamelCaseNamingConvention())
                 .Build();
 
-            var serialierBuilder = new SerializerBuilder();
+            var serializerBuilder = new SerializerBuilder();
 
-            _serializer = serialierBuilder
+            _serializer = serializerBuilder
                 .WithNamingConvention(new CamelCaseNamingConvention())
+                .WithTypeInspector<DynamicXmlTypeInspector>((typeInspector) => { return new DynamicXmlTypeInspector(typeInspector);  })
                 .Build();
         }
         public static string ToYamlString(this object graph)

@@ -19,6 +19,7 @@ namespace MockEngine.Internal
         private DataSet _dataSet;
         private IMockContext _context;
         private ILogProvider _logProvider;
+        private object _lock = new Object();
         public Tables( IMockContext context, IEnumerable<MockTable> mockTables)
         {
             _context = context;
@@ -156,7 +157,10 @@ namespace MockEngine.Internal
                 _logProvider.Error("in your call to Select(tableName, query [, sortOrder]), query cannot be null");
                 throw new ArgumentNullException(nameof(query));
             }
-            return ToDynamicDataRows(this[tableName].Select(query, sortOrder));
+            lock (_lock)
+            {
+                return ToDynamicDataRows(this[tableName].Select(query, sortOrder));
+            }
         }
         public IEnumerable<DynamicDataRow> Select(string tableName, string query)
         {

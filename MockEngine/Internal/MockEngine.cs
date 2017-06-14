@@ -110,10 +110,11 @@ namespace MockEngine.Internal
             private Type _requestType;
             private IMockContext _context;
             private MockScenario _scenario;
-            public Scenario( IMockContext context, MockScenario scenario)
+            public Scenario( IMockContext context, MockScenario scenario, IDictionary<string,string> pathParameters)
             {
                 _context = context;
                 _scenario = scenario;
+                PathParameters = pathParameters;
             }
 
             public string Description
@@ -156,11 +157,17 @@ namespace MockEngine.Internal
                     return _requestType;
                 }
             }
+            public override string ToString()
+            {
+                return _scenario.ToString();
+            }
+
+            public IDictionary<string, string> PathParameters { get; }
         }
-        public IScenario FindScenario(string path)
+        public IScenario FindScenario(string path, string method)
         {
-            var mockScenario = _scenarioManager.FindScenario(path);
-            return mockScenario == null ? null : new Scenario(_context, mockScenario);
+            var result = _scenarioManager.FindScenario(path, method);
+            return result.Success ? new Scenario(_context, result.Scenario, result.PathParameters) : null;
         }
         public IMockEngineResponse Invoke(string scenarioName, object dynamicProperties = null)
         {

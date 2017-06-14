@@ -1,6 +1,8 @@
-﻿path: /api/mocktest/helloworld$
+﻿request:
+  path: /api/mocktest/helloworld$
 actions:
  - response:
+     bodyType: Mydomain.common.type, mydomain.common 
      body:
        html:
          head:

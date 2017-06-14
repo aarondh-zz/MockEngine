@@ -12,5 +12,6 @@ namespace MockEngine.Interfaces
         string Description { get; }
         Type RequestType { get; }
         string RequestParameterName { get; }
+        IDictionary<string, string> PathParameters { get; }
     }
 }

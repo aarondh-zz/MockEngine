@@ -1,4 +1,5 @@
-﻿path: /api/mocktest/engineReady
+﻿request:
+  path: /api/mocktest/engineReady
   
 actions: 
     - name: engineReady

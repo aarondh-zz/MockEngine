@@ -14,8 +14,8 @@
           ucp: false
         - storeId: 106
           ucp: true
-path: /api/mocktest/testmethod3
 request:
+  path: /api/mocktest/testmethod3
   parameterName: testRequest
   type: MockEngine.TestWeb.Models.TestRequestMessage,MockEngine.TestWeb
           

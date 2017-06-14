@@ -10,8 +10,6 @@ namespace MockEngine.Models
 {
     public class MockScenario
     {
-        [YamlMember(Alias = "path")]
-        public string Path { get; set; }
         [YamlMember(Alias = "priority")]
         public float Priority { get; set; }
         [YamlMember(Alias = "name")]
@@ -24,5 +22,10 @@ namespace MockEngine.Models
         public MockGlobal Global { get; set; }
         [YamlMember(Alias = "actions")]
         public List<MockAction> Actions { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Priority}:{Name}";
+        }
     }
 }

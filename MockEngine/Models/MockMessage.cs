@@ -11,8 +11,6 @@ namespace MockEngine.Models
     {
         [YamlMember(Alias = "statusCode")]
         public string StatusCode { get; set; }
-        [YamlMember(Alias = "contentType")]
-        public string ContentType { get; set; }
         [YamlMember(Alias = "reason")]
         public string Reason { get; set; }
         [YamlMember(Alias ="bodyType")]

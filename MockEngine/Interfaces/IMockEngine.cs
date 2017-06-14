@@ -10,6 +10,6 @@ namespace MockEngine.Interfaces
     public interface IMockEngine
     {
         IMockEngineResponse Invoke(string scenario, object dynamicParameters = null);
-        IScenario FindScenario(string path);
+        IScenario FindScenario(string path, string method);
     }
 }

@@ -23,10 +23,15 @@ namespace MockEngine.TestWeb
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{action}",
-                defaults: new {  }
+                defaults: new { action = "ready", controller = "MockTest" }
+            );
+            config.Routes.MapHttpRoute(
+                name: "DefaultApi2",
+                routeTemplate: "api/*",
+                defaults: new { action = "ready", controller = "MockTest" }
             );
 
-            config.MessageHandlers.Add(new MockMessageHandler());
+            config.MessageHandlers.Insert(0,new MockMessageHandler());
         }
     }
 }

@@ -14,8 +14,8 @@
           valid: false
         - storeId: 106
           valid: true
-path: mock=true           
 request:
+  path: mock=true           
   parameterName: testRequest
   type: MockEngine.TestWeb.Models.TestRequestMessage,MockEngine.TestWeb
 actions: 

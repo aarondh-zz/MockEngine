@@ -54,33 +54,72 @@ namespace MockEngine.Http
                 try
                 {
                     var pathAndQuery = request.RequestUri.PathAndQuery;
-                    if (_whenMatcher == null || _whenMatcher.IsMatch(pathAndQuery))
+                    if (_whenMatcher != null)
                     {
-                        var dynamicParameters = new ExpandoObject();
-                        dynamicParameters.AddProperty("Request", request);
-                        foreach (var property in request.Properties)
+                        var match = _whenMatcher.Match(pathAndQuery);
+                        if (match.Success)
                         {
-                            dynamicParameters.AddProperty(property.Key, property.Value);
-                        }
-                        var parameters = request.RequestUri.ParseQueryString();
-                        foreach (string parameterName in parameters)
-                        {
-                            dynamicParameters.AddProperty(parameterName, parameters[parameterName]);
-                        }
-                        var scenario = _mockEngine.FindScenario(pathAndQuery);
-                        if (scenario == null)
-                        {
-                            return await base.SendAsync(request, cancellationToken);
-                        }
-                        if (request.Content.Headers.ContentType != null)
-                        {
-                            var contentType = request.Content.Headers.ContentType.MediaType;
-                            if (contentType == "application/xml")
+
+                            var scenario = _mockEngine.FindScenario(pathAndQuery, request.Method.Method);
+
+                            if (scenario == null)
                             {
-                                if (scenario.RequestType == typeof(DynamicObject))
+                                return await base.SendAsync(request, cancellationToken);
+                            }
+
+                            var dynamicParameters = new ExpandoObject();
+
+                            dynamicParameters.AddProperty("Request", request);
+
+                            foreach (var pathParameter in scenario.PathParameters)
+                            {
+                                dynamicParameters.AddProperty(pathParameter.Key, pathParameter.Value);
+                            }
+
+                            foreach (var property in request.Properties)
+                            {
+                                dynamicParameters.AddProperty(property.Key, property.Value);
+                            }
+
+                            var parameters = request.RequestUri.ParseQueryString();
+
+                            foreach (string parameterName in parameters)
+                            {
+                                dynamicParameters.AddProperty(parameterName, parameters[parameterName]);
+                            }
+
+                            if (request.Content.Headers.ContentType != null)
+                            {
+                                var contentType = request.Content.Headers.ContentType.MediaType;
+                                if (contentType == "application/xml" || contentType == "text/xml")
                                 {
+                                    if (scenario.RequestType == typeof(DynamicObject))
+                                    {
+                                        var content = await request.Content.ReadAsStringAsync();
+                                        if (!string.IsNullOrWhiteSpace(content))
+                                        {
+                                            dynamicParameters.AddProperty(scenario.RequestParameterName, DynamicXml.Parse(content));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var contentGraph = await request.Content.ReadAsAsync(scenario.RequestType);
+                                        dynamicParameters.AddProperty(scenario.RequestParameterName, contentGraph);
+                                    }
+                                }
+                                else if (contentType == "application/yaml")
+                                {
+                                    // TBD: Note that I should be able to do this with the YamlMediaTypeFormatter
+                                    // but it is currently being ignored
                                     var content = await request.Content.ReadAsStringAsync();
-                                    dynamicParameters.AddProperty(scenario.RequestParameterName, DynamicXml.Parse(content));
+                                    if (scenario.RequestType == typeof(DynamicObject))
+                                    {
+                                        dynamicParameters.AddProperty(scenario.RequestParameterName, content.DeserializeYaml<object>());
+                                    }
+                                    else
+                                    {
+                                        dynamicParameters.AddProperty(scenario.RequestParameterName, content.DeserializeYaml(scenario.RequestType));
+                                    }
                                 }
                                 else
                                 {
@@ -88,54 +127,35 @@ namespace MockEngine.Http
                                     dynamicParameters.AddProperty(scenario.RequestParameterName, contentGraph);
                                 }
                             }
-                            else if (contentType == "application/yaml")
+                            var result = _mockEngine.Invoke(scenario.Name, dynamicParameters);
+                            if (result.Success)
                             {
-                                // TBD: Note that I should be able to do this with the YamlMediaTypeFormatter
-                                // but it is currently being ignored
-                                var content = await request.Content.ReadAsStringAsync();
-                                if (scenario.RequestType == typeof(DynamicObject))
+                                var response = new HttpResponseMessage(result.StatusCode) { ReasonPhrase = result.ReasonPhrase };
+                                response.RequestMessage = request;
+                                if (result.Content != null)
                                 {
-                                    dynamicParameters.AddProperty(scenario.RequestParameterName, content.DeserializeYaml<object>());
+                                    Type contentType = result.Content.GetType();
+                                    if (WillAcceptType(request.Headers.Accept, "application/xml"))
+                                    {
+                                        response.Content = new StringContent(SerializeAsXml(result.Content, Encoding.UTF8), Encoding.UTF8, "application/xml");
+                                    }
+                                    else if (WillAcceptType(request.Headers.Accept, "application/json"))
+                                    {
+                                        response.Content = new ObjectContent(contentType, result.Content, new JsonMediaTypeFormatter(), "application/json");
+                                    }
+                                    else if (WillAcceptType(request.Headers.Accept, "application/yaml") || WillAcceptType(request.Headers.Accept, "*/*"))
+                                    {
+                                        response.Content = new ObjectContent(contentType, result.Content, new YamlMediaTypeFormatter(), "application/yaml");
+                                    }
+                                    else
+                                    {
+                                        response.Content = new StringContent("response media type is not supported");
+                                        response.StatusCode = HttpStatusCode.UnsupportedMediaType;
+                                        response.ReasonPhrase = "response media type is not supported";
+                                    }
                                 }
-                                else
-                                {
-                                    dynamicParameters.AddProperty(scenario.RequestParameterName, content.DeserializeYaml(scenario.RequestType));
-                                }
+                                return response;
                             }
-                            else
-                            {
-                                var contentGraph = await request.Content.ReadAsAsync(scenario.RequestType);
-                                dynamicParameters.AddProperty(scenario.RequestParameterName, contentGraph);
-                            }
-                        }
-                        var result = _mockEngine.Invoke(scenario.Name, dynamicParameters);
-                        if (result.Success)
-                        {
-                            var response = new HttpResponseMessage(result.StatusCode) { ReasonPhrase = result.ReasonPhrase };
-                            response.RequestMessage = request;
-                            if (result.Content != null)
-                            {
-                                Type contentType = result.Content.GetType();
-                                if (WillAcceptType(request.Headers.Accept, "application/xml"))
-                                {
-                                    response.Content = new StringContent(SerializeAsXml(result.Content, Encoding.UTF8), Encoding.UTF8, "application/xml");
-                                }
-                                else if (WillAcceptType(request.Headers.Accept, "application/json"))
-                                {
-                                    response.Content = new ObjectContent(contentType, result.Content, new JsonMediaTypeFormatter(), "application/json");
-                                }
-                                else if (WillAcceptType(request.Headers.Accept, "application/yaml") || WillAcceptType(request.Headers.Accept, "*/*"))
-                                {
-                                    response.Content = new ObjectContent(contentType, result.Content, new YamlMediaTypeFormatter(), "application/yaml");
-                                }
-                                else
-                                {
-                                    response.Content = new StringContent("response media type is not supported");
-                                    response.StatusCode = HttpStatusCode.UnsupportedMediaType;
-                                    response.ReasonPhrase = "response media type is not supported";
-                                }
-                            }
-                            return response;
                         }
                     }
 

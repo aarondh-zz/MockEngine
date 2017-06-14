@@ -26,24 +26,57 @@ namespace MockEngine.Internal
                 this.Scenario = scenario;
             }
             public MockScenario Scenario { get; }
-            public bool IsMatch(string path)
+            public bool IsMatch(string path, string method)
             {
-                if (string.IsNullOrWhiteSpace(Scenario.Path))
+                if (Scenario.Request == null)
                 {
                     return true;
                 }
                 else
                 {
+                    if (Scenario.Request.Method != null && method != null && !string.Equals(Scenario.Request.Method, method, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return false;
+                    }
+                    if (Scenario.Request.Path == null)
+                    {
+                        return true;
+                    }
                     if ( _pathMatcher == null)
                     {
-                        _pathMatcher = new Regex(Scenario.Path, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+                        _pathMatcher = new Regex(Scenario.Request.Path, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
                     }
                     return _pathMatcher.IsMatch(path);
                 }
             }
+            public IDictionary<string,string> GetPathParameters(string path)
+            {
+                var parameters = new Dictionary<string, string>();
+                var match = _pathMatcher.Match(path);
+                if ( match.Success )
+                {
+                    foreach (var groupName in _pathMatcher.GetGroupNames())
+                    {
+                        Group group = match.Groups[groupName];
+                        if ( group.Success )
+                        {
+                            int groupNumber;
+                            if ( int.TryParse(groupName, out groupNumber))
+                            {
+                                parameters["$"+ groupName] = group.Value;
+                            }
+                            else
+                            {
+                                parameters[groupName] = group.Value;
+                            }
+                        }
+                    }
+                }
+                return parameters;
+            }
             public override string ToString()
             {
-                return $"{Scenario.Priority}:{Scenario.Name} /{(Scenario.Path == null ? "*." : Scenario.Path.Replace("/", "//"))}/ {Scenario.Request.Type} {Scenario.Request.ParameterName}";
+                return $"{Scenario.Priority}:{Scenario.Name} [{Scenario.Request?.Method}] /{(Scenario.Request?.Path == null ? "*." : Scenario.Request.Path.Replace("/", "//"))}/ {Scenario.Request?.Type??"dynamic"} {Scenario.Request?.ParameterName??"body"}";
             }
             public override bool Equals(object obj)
             {
@@ -188,18 +221,25 @@ namespace MockEngine.Internal
                 return LoadScenario(scenarioName);
             });
         }
-        public MockScenario FindScenario( string path )
+        public class FindScenarioResult
+        {
+            public bool Success { get; set; }
+            public MockScenario Scenario { get; set; }
+            public IDictionary<string,string> PathParameters { get; set; }
+        }
+        public FindScenarioResult FindScenario( string path, string method )
         {
             lock(_lock)
             {
                 foreach( var routeEntry in _routes)
                 {
-                    if ( routeEntry.Value.IsMatch(path))
+                    var route = routeEntry.Value;
+                    if (route.IsMatch(path, method))
                     {
-                        return routeEntry.Value.Scenario;
+                        return new FindScenarioResult { Success = true, Scenario = route.Scenario, PathParameters = route.GetPathParameters(path) };
                     }
                 }
-                return null;
+                return new FindScenarioResult { Success = false };
             }
         }
         private MockScenario LoadScenario(string scenarioName)

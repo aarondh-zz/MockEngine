@@ -1,8 +1,11 @@
-﻿path: /api/mocktest/engineReady
+﻿request:
+  method: put
+  path: /api/mocktest/engineReady
   
 actions: 
     - name: engineReady
       response:
         statusCode: OK
-        reason: The mock engine is ready (really)
+        reason: The mock message handler engine is ready (really)
+        body: The mock message handler engine is ready (really)
             

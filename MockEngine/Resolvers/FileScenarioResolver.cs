@@ -101,6 +101,7 @@ namespace MockEngine.Resolvers
                 _fileSystemWatcher.Renamed += Scenario_Renamed;
                 _fileSystemWatcher.Error += Scenario_Error;
                 _fileSystemWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.DirectoryName;
+                _fileSystemWatcher.IncludeSubdirectories = true;
                 _fileSystemWatcher.EnableRaisingEvents = true;
             }
             _changeHandlers.Add(onChange);
