@@ -23,7 +23,7 @@ namespace MockEngine.TestWeb.Tests
             // New code:
             httpClient.BaseAddress = new Uri("http://localhost:11848/");
             httpClient.DefaultRequestHeaders.Accept.Clear();
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
         }
         static async Task<HttpResponseMessage> SendTestMessageAsync(string requestUri, int numberParamter1, TestRequestMessage testRequestMessage, string scenario, bool boolParameter2, string textParameter3)
         {
@@ -31,19 +31,39 @@ namespace MockEngine.TestWeb.Tests
         }
         static async Task<TestResponseMessage> SendTestMessageAndReadAsync(string requestUri, int numberParamter1, TestRequestMessage testRequestMessage, string scenario, bool boolParameter2, string textParameter3, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
         {
+            TestResponseMessage testResponseMessage;
             HttpResponseMessage response = await SendTestMessageAsync(requestUri, numberParamter1, testRequestMessage, scenario, boolParameter2, textParameter3);
+            if ( response.IsSuccessStatusCode )
+            {
+                testResponseMessage = await response.Content.ReadAsAsync<TestResponseMessage>();
+            }
+            else
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                Trace.WriteLine(text);
+                testResponseMessage = null;
+            }
             Assert.AreEqual(expectedStatusCode, response.StatusCode, $"Expected status code {expectedStatusCode} but got {response.StatusCode}");
 
-            var testResponseMessage = await response.Content.ReadAsAsync<TestResponseMessage>();
 
             return testResponseMessage;
         }
-        static async Task<ExpandoObject> SendTestMessageAndReadDynamicAsync(string requestUri, int numberParamter1, TestRequestMessage testRequestMessage, string scenario, bool boolParameter2, string textParameter3, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+        static async Task<DynamicXml> SendTestMessageAndReadDynamicAsync(string requestUri, int numberParamter1, TestRequestMessage testRequestMessage, string scenario, bool boolParameter2, string textParameter3, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
         {
+            DynamicXml graph;
             HttpResponseMessage response = await SendTestMessageAsync(requestUri, numberParamter1, testRequestMessage, scenario, boolParameter2, textParameter3);
+            if ( response.IsSuccessStatusCode)
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                graph = DynamicXml.Parse(text);
+            }
+            else
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                Trace.WriteLine(text);
+                graph = null;
+            }
             Assert.AreEqual(expectedStatusCode, response.StatusCode, $"Expected status code {expectedStatusCode} but got {response.StatusCode}");
-
-            var graph = await response.Content.ReadAsAsync<ExpandoObject>();
 
             return graph;
         }
@@ -183,10 +203,12 @@ namespace MockEngine.TestWeb.Tests
         {
             var requestMessage = new TestRequestMessage();
 
-            var response = SendTestMessageAndReadAsync("/api/mocktest/testMethod3", 5, requestMessage, "test1", false, "My text parameter3");
+            var response = SendTestMessageAndReadDynamicAsync("/api/mocktest/testMethod3", 5, requestMessage, "test1", false, "My text parameter3");
             response.Wait();
 
             Trace.WriteLine($"response message:\n{response.Result.ToYamlString()}");
+
+            Assert.Fail("The result is not serializing to yaml"); // TBD:  need to fix this
         }
         [TestMethod]
         public void TestMatching101Action()

@@ -64,11 +64,7 @@
             }
             else
             {
-                Type type = this.TypeResolver.Resolve(assemblyQualifiedName);
-                if (type == null)
-                {
-                    throw new Exception($"Type/Assembly \"{assemblyQualifiedName}\" was not found.");
-                }
+                Type type = this.TypeResolver.Resolve(assemblyQualifiedName, true);
                 if (typeof(T).IsAssignableFrom(type))
                 {
                     T mockComponent = (T)Activator.CreateInstance(type);

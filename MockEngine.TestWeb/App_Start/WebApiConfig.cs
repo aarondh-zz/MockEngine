@@ -14,7 +14,8 @@ namespace MockEngine.TestWeb
         {
             // Web API formatters
 
-            config.Formatters.Insert(0,new YamlMediaTypeFormatter());
+            config.Formatters.Insert(0, new YamlMediaTypeFormatter());
+            config.Formatters.Insert(0, new DynamicXmlMediaTypeFormatter());
 
             // Web API configuration and services
 

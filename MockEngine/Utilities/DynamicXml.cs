@@ -56,22 +56,29 @@ namespace MockEngine.Utilities
                     result = _root.Value;
                     return true;
                 }
-                var nodes = _root.Elements(memberName);
-                if (nodes.Count() > 1)
+                var matchingElements = new List<XElement>();
+                var node = _root.FirstNode;
+                while (node != null)
                 {
-                    result = nodes.Select(n => n.HasElements || n.HasAttributes ? (object)new DynamicXml(n) : n.Value).ToList();
+                    if ( node.NodeType == XmlNodeType.Element )
+                    {
+                        var element = node as XElement;
+                        if ( element.Name.LocalName == memberName )
+                        {
+                            matchingElements.Add(node as XElement);
+                        }
+                    }
+                    node = node.NextNode;
+                }
+                if (matchingElements.Count() > 1)
+                {
+                    result = matchingElements.Select(n => n.HasElements || n.HasAttributes ? (object)new DynamicXml(n) : n.Value).ToList();
                     return true;
                 }
-
-                var node = _root.Element(memberName);
-                if (node != null)
+                else
                 {
-                    result = node.HasElements || node.HasAttributes? (object)new DynamicXml(node) : node.Value;
-                    return true;
-                }
-                if ( memberName == TextMemberName)
-                {
-                    result = _root.Value;
+                    var matchedElement = matchingElements.First();
+                    result = matchedElement.HasElements || matchedElement.HasAttributes ? (object)new DynamicXml(matchedElement) : matchedElement.Value;
                     return true;
                 }
             }

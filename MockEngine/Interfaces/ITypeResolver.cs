@@ -8,6 +8,6 @@ namespace MockEngine.Interfaces
 {
     public interface ITypeResolver : IMockComponent
     {
-        Type Resolve(string assemblyQualifiedTypeName);
+        Type Resolve(string assemblyQualifiedTypeName, bool throwOnError);
     }
 }

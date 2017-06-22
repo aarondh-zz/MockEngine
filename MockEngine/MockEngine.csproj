@@ -64,6 +64,7 @@
     <Compile Include="Interfaces\IMockEngineSettings.cs" />
     <Compile Include="Interfaces\IMockEngineResponse.cs" />
     <Compile Include="Interfaces\IScenario.cs" />
+    <Compile Include="Interfaces\TypeResolverException.cs" />
     <Compile Include="Internal\MockEngine.cs" />
     <Compile Include="Internal\DynamicDataRow.cs" />
     <Compile Include="Internal\MockEngineResponse.cs" />
@@ -91,19 +92,33 @@
     <Compile Include="Utilities\YamlExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ClearScript.dll" />
-    <Content Include="ClearScriptV8-32.dll" />
-    <Content Include="ClearScriptV8-64.dll" />
-    <Content Include="concrt140.dll" />
-    <Content Include="msvcp140.dll" />
+    <Content Include="ClearScript.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ClearScriptV8-32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ClearScriptV8-64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="concrt140.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="msvcp140.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="v8-ia32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="v8-x64.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="vccorlib140.dll" />
-    <Content Include="vcruntime140.dll" />
+    <Content Include="vccorlib140.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="vcruntime140.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="Licenses\ClearScript.main.license" />

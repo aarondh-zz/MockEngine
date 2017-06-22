@@ -12,7 +12,7 @@ namespace MockEngine.Resolvers
     {
         private ILogProvider _logProvider;
         private Assembly _defaultAssembly;
-        public DefaultTypeResolver( )
+        public DefaultTypeResolver()
         {
             _defaultAssembly = Assembly.GetCallingAssembly();
         }
@@ -24,9 +24,9 @@ namespace MockEngine.Resolvers
             }
             this._logProvider = context.LogProvider;
         }
-        public Type Resolve(string typeReference)
+        public Type Resolve(string typeReference, bool throwOnError)
         {
-            if ( typeReference == null)
+            if (typeReference == null)
             {
                 throw new ArgumentNullException(nameof(typeReference));
             }
@@ -49,13 +49,22 @@ namespace MockEngine.Resolvers
                 {
                     assembly = Assembly.Load(assemblyFullString);
                 }
-                if ( assembly == null)
+                if (assembly == null)
                 {
+                    if (throwOnError)
+                    {
+                        throw new TypeResolverException(typeReference, $"Assembly {assemblyFullString} not found.");
+                    }
                     return null;
                 }
                 else
                 {
-                    return assembly.GetType(typeString);
+                    var type = assembly.GetType(typeString);
+                    if (type == null && throwOnError)
+                    {
+                        throw new TypeResolverException(typeReference, $"Type not found in assembly {assemblyFullString}");
+                    }
+                    return type;
                 }
             }
             else

@@ -152,7 +152,7 @@ namespace MockEngine.Internal
                         {
                             return typeof(DynamicObject);
                         }
-                        _requestType = _context.TypeResolver.Resolve(requestTypeName);
+                        _requestType = _context.TypeResolver.Resolve(requestTypeName, true);
                     }
                     return _requestType;
                 }
@@ -330,7 +330,7 @@ namespace MockEngine.Internal
             {
                 HttpStatusCode statusCode;
                 int intStatusCode;
-                if (Enum.TryParse<HttpStatusCode>(mockResponse.StatusCode, out statusCode))
+                if (Enum.TryParse<HttpStatusCode>(mockResponse.StatusCode, true, out statusCode))
                 {
                     response.StatusCode = statusCode;
                 }
@@ -372,13 +372,7 @@ namespace MockEngine.Internal
                     }
                     else
                     {
-                        responseType = _typeResolver.Resolve(action.Response.BodyType);
-                        if (responseType == null)
-                        {
-                            var message = $"response type \"{mockResponse.BodyType}\" not found.";
-                            _logProvider.Error(message);
-                            throw new MockEngineException(this.Name, scenarioName, message);
-                        }
+                        responseType = _typeResolver.Resolve(action.Response.BodyType, true);
                     }
                     if (mockResponse.Body == null)
                     {
@@ -407,6 +401,12 @@ namespace MockEngine.Internal
                     }
                 }
                 return response;
+            }
+            catch( TypeResolverException e)
+            {
+                var message = $"response type \"{e.TypeName}\" not found: {e.Message}";
+                _logProvider.Error(message);
+                throw new MockEngineException(this.Name, scenarioName, message);
             }
             catch (YamlDotNet.Core.SyntaxErrorException e)
             {

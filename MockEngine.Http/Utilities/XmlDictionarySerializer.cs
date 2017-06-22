@@ -12,6 +12,9 @@ namespace MockEngine.Http.Utilities
 {
     public class XmlDictionarySerializer : ISerializer
     {
+        private const string XmlSchemaInstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+        private const string AttributePropertyPrefix = "_";
+        private const string TextPropertyName = "__text";
         private string _defaultRootElementName;
         public XmlDictionarySerializer ( string defaultRootElementName)
         {
@@ -26,21 +29,21 @@ namespace MockEngine.Http.Utilities
                 writer.Flush();
             }
         }
-        void Serialize(XmlWriter writer, IDictionary<object, object> graph)
+        private void Serialize(XmlWriter writer, IDictionary<object, object> graph)
         {
             if ( graph.Count == 1)
             {
                 foreach( var entry in graph )
                 {
-                    Serialize(writer, entry.Value, entry.Key.ToString());
+                    Serialize(writer, entry.Value, entry.Key.ToString(), true);
                 }
             }
             else
             {
-                Serialize(writer, graph, _defaultRootElementName);
+                Serialize(writer, graph, _defaultRootElementName, true);
             }
         }
-        void Serialize(XmlWriter writer, object value, string localName)
+        void Serialize(XmlWriter writer, object value, string localName, bool isRoot = false)
         {
             if (value is IList<object>)
             {
@@ -50,10 +53,38 @@ namespace MockEngine.Http.Utilities
             {
                 Serialize(writer, value as IDictionary<object, object>, localName);
             }
+            else if (localName == TextPropertyName)
+            {
+                if (value != null)
+                {
+                    writer.WriteValue(value);
+                }
+
+            }
+            else if (localName.StartsWith(AttributePropertyPrefix))
+            {
+                if (value != null)
+                {
+                    var attributeName = localName.Substring(AttributePropertyPrefix.Length);
+                    writer.WriteAttributeString(attributeName, null, value.ToString());
+                }
+
+            }
             else
             {
                 writer.WriteStartElement(localName);
-                writer.WriteValue(value);
+                if ( isRoot )
+                {
+                    writer.WriteAttributeString("xmlns", "i", null, "XmlSchemaInstanceNamespace");
+                }
+                if (value == null)
+                {
+                    writer.WriteAttributeString("nil", XmlSchemaInstanceNamespace, "true");
+                }
+                else
+                {
+                    writer.WriteValue(value);
+                }
                 writer.WriteEndElement();
             }
         }
