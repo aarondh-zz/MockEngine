@@ -69,6 +69,10 @@ namespace MockEngine.Http
 
                             var dynamicParameters = new ExpandoObject();
 
+                            var headers = new DynamicNameValueCollection();
+                            headers.AddHeaders(request.Headers);
+                            dynamicParameters.AddProperty("Headers", headers);
+
                             dynamicParameters.AddProperty("Request", request);
 
                             foreach (var pathParameter in scenario.PathParameters)
