@@ -5,6 +5,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MockEngine.Http.Utilities
 {
@@ -41,7 +42,20 @@ namespace MockEngine.Http.Utilities
             Add(binder.Name, value == null ? "" : value.ToString());
             return true;
         }
-
+        public override string ToString()
+        {
+            StringBuilder result = new StringBuilder();
+            foreach (var name in GetDynamicMemberNames())
+            {
+                var value = _headers[name];
+                if (result.Length > 0)
+                {
+                    result.Append(";\n");
+                }
+                result.AppendFormat("{0}={1}", name, HttpUtility.JavaScriptStringEncode(value));
+            }
+            return result.ToString();
+        }
         public static string ToValidPropertyName( string text)
         {
             StringBuilder propertyName = new StringBuilder();
