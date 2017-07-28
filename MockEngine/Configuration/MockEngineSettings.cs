@@ -1,74 +1,29 @@
 ﻿using MockEngine.Interfaces;
 using System;
-using System.Configuration;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace MockEngine.Configuration
 {
-    public class MockEngineSettings : ConfigurationSection, IMockEngineSettings
+    public class MockEngineSettings : IMockEngineSettings
     {
-        private static MockEngineSettings _sCacheSettings;
+        public MockEngineSettings()
+        {
+            this.ScenarioResolverSettings = new ScenarioResolverSettings();
+            var codebase = Assembly.GetCallingAssembly().EscapedCodeBase;
+            this.RootPath = System.IO.Path.GetDirectoryName(new Uri(codebase).LocalPath);
+        }
+        public string LogProvider { get; set; }
+        public string Name { get; set; }
+        public string RootPath { get; set; }
+        public string ScenarioResolver { get; set; }
+        public ScenarioResolverSettings ScenarioResolverSettings { get; set; }
+        public string TypeResolver { get; set; }
 
-        public static MockEngineSettings Settings
-        {
-            get
-            {
-                return _sCacheSettings ??
-                       (_sCacheSettings =
-                        ConfigurationManager.GetSection("mockEngineSettings") as MockEngineSettings);
-            }
-        }
 
-        [ConfigurationProperty("logProvider")]
-        public string LogProvider
-        {
-            get
-            {
-                return this["logProvider"] as string;
-            }
-        }
-
-        [ConfigurationProperty("name", IsRequired = true)]
-        public string Name
-        {
-            get
-            {
-                return this["name"] as string;
-            }
-        }
-
-        [ConfigurationProperty("rootPath")]
-        public string RootPath
-        {
-            get
-            {
-                return this["rootPath"] as string;
-            }
-        }
-
-        [ConfigurationProperty("scenarioResolver")]
-        public string ScenarioResolver
-        {
-            get
-            {
-                return this["scenarioResolver"] as string;
-            }
-        }
-
-        [ConfigurationProperty("typeResolver")]
-        public string TypeResolver
-        {
-            get
-            {
-                return this["typeResolver"] as string;
-            }
-        }
-        [ConfigurationProperty("scenarioResolverSettings")]
-        public SenarioResolverSettingConfigurationElement ScenarioResolverSettings
-        {
-            get
-            {
-                return this["scenarioResolverSettings"] as SenarioResolverSettingConfigurationElement;
-            }
-        }
         IScenarioResolverSettings IMockEngineSettings.ScenarioResolverSettings
         {
             get
@@ -78,4 +33,3 @@ namespace MockEngine.Configuration
         }
     }
 }
-

@@ -59,7 +59,7 @@ namespace MockEngine.Resolvers
         }
         public Stream Resolve(string scenarioName)
         {
-            var filePath = _pathBase + scenarioName.Replace("/","\\") + _pathSuffix;
+            var filePath = Path.Combine( _pathBase,scenarioName.Replace("/","\\"),_pathSuffix);
             return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite|FileShare.Delete);
         }
 

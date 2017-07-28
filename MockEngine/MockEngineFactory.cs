@@ -13,8 +13,6 @@
         private IMockEngineSettings _settings;
         public MockEngineFactory()
         {
-            this.LogProvider = new TraceLogProvider();
-            this.TypeResolver = new DefaultTypeResolver();
         }
         IMockEngineSettings IMockContext.Settings
         {
@@ -29,30 +27,40 @@
             {
                 throw new ArgumentNullException(nameof(settings));
             }
+            _settings = settings;
+            this.LogProvider = new TraceLogProvider();
+            this.LogProvider.Initialize(this);
+
+            if (string.IsNullOrWhiteSpace(settings.RootPath))
+            {
+                var codebase = Assembly.GetCallingAssembly().EscapedCodeBase;
+                RootPath = System.IO.Path.GetDirectoryName(new Uri(codebase).LocalPath);
+            }
             else
             {
-                _settings = settings;
-                if (string.IsNullOrWhiteSpace(settings.RootPath))
-                {
-                    var codebase = Assembly.GetCallingAssembly().EscapedCodeBase;
-                    RootPath = System.IO.Path.GetDirectoryName(new Uri(codebase).LocalPath);
-                }
-                else 
-                {
-                    RootPath = _settings.RootPath;
-                }
-                if (!string.IsNullOrWhiteSpace(settings.TypeResolver))
-                {
-                    this.TypeResolver = CreateComponent<ITypeResolver>(settings.TypeResolver);
-                }
-                if (!string.IsNullOrWhiteSpace(settings.LogProvider))
-                {
-                    this.LogProvider = CreateComponent<ILogProvider>(settings.LogProvider);
-                }
-                if (!string.IsNullOrWhiteSpace(settings.ScenarioResolver))
-                {
-                    this.ScenarioResolver = CreateComponent<IScenarioResolver>(settings.ScenarioResolver);
-                }
+                RootPath = _settings.RootPath;
+            }
+            if (string.IsNullOrWhiteSpace(settings.TypeResolver))
+            {
+                this.TypeResolver = new DefaultTypeResolver();
+                this.TypeResolver.Initialize(this);
+            }
+            else
+            {
+                this.TypeResolver = CreateComponent<ITypeResolver>(settings.TypeResolver);
+            }
+            if (!string.IsNullOrWhiteSpace(settings.LogProvider))
+            {
+                this.LogProvider = CreateComponent<ILogProvider>(settings.LogProvider);
+            }
+            if (string.IsNullOrWhiteSpace(settings.ScenarioResolver))
+            {
+                this.ScenarioResolver = new FileScenarioResolver();
+                this.ScenarioResolver.Initialize(this);
+            }
+            else
+            {
+                this.ScenarioResolver = CreateComponent<IScenarioResolver>(settings.ScenarioResolver);
             }
         }
         public string RootPath { get; private set; }

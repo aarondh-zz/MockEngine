@@ -18,7 +18,7 @@ namespace MockEngine.TestWeb.Controllers
         private static IMockEngine _mockEngine;
         static MockTestController() {
             var mockEngineFactory = new MockEngineFactory();
-            mockEngineFactory.Initialize(MockEngineSettings.Settings);
+            mockEngineFactory.Initialize(MockEngineConfigurationSettings.Settings);
             _mockEngine = mockEngineFactory.CreateMockEngine("Test1");
         }
         [HttpGet]

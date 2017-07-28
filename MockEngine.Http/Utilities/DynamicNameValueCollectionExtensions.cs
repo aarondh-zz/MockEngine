@@ -22,22 +22,25 @@ namespace MockEngine.Http.Utilities
 
         public static void AddSplitValues(this DynamicNameValueCollection collection, string values, string prefix = "")
         {
-            var components = values.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var component in components)
+            if ( values != null )
             {
-                var subcomponents = component.Split(new char[] { '=' });
-                var name = prefix + subcomponents[0];
-                if (subcomponents.Length == 1)
+                var components = values.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var component in components)
                 {
-                    collection.Add(name, "true");
-                }
-                else if (subcomponents.Length == 2)
-                {
-                    collection.Add(name, subcomponents[1]);
-                }
-                else
-                {
-                    collection.Add(name, subcomponents.Skip(1).Aggregate((a,b)=> { return a + "=" + b; }));
+                    var subcomponents = component.Split(new char[] { '=' });
+                    var name = prefix + subcomponents[0];
+                    if (subcomponents.Length == 1)
+                    {
+                        collection.Add(name, "true");
+                    }
+                    else if (subcomponents.Length == 2)
+                    {
+                        collection.Add(name, subcomponents[1]);
+                    }
+                    else
+                    {
+                        collection.Add(name, subcomponents.Skip(1).Aggregate((a, b) => { return a + "=" + b; }));
+                    }
                 }
             }
         }

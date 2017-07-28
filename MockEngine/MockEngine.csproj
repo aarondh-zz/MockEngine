@@ -52,6 +52,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\MockEngineConfigurationSettings.cs" />
+    <Compile Include="Configuration\ScenarioResolverSettings.cs" />
     <Compile Include="Configuration\SenarioResolverSettingConfigurationElement.cs" />
     <Compile Include="Configuration\AssemblyConfigurationElement.cs" />
     <Compile Include="Configuration\GenericConfigurationElementCollection.cs" />
