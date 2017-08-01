@@ -189,20 +189,20 @@ namespace MockEngine.Internal
                     switch (change.ChangeType)
                     {
                         case ScenarioChangeTypes.Created:
-                            _logProvider.Information($"Adding scenario \"{change.Name}\"");
+                            _logProvider.Information("Adding scenario {scenarioName}", change.Name);
                             GetScenario(change.Name);
                             break;
                         case ScenarioChangeTypes.Deleted:
-                            _logProvider.Information($"Deleting scenario \"{change.Name}\"");
+                            _logProvider.Information("Deleting scenario {scenarioName}", change.Name);
                             DeleteScenario(change.Name);
                             break;
                         case ScenarioChangeTypes.Changed:
-                            _logProvider.Information($"Updating scenario \"{change.Name}\"");
+                            _logProvider.Information("Updating scenario {scenarioName}", change.Name);
                             DeleteScenario(change.Name);
                             GetScenario(change.Name);
                             break;
                         case ScenarioChangeTypes.Renamed:
-                            _logProvider.Information($"Renaming scenario \"{change.OldName}\" to  \"{change.Name}\"");
+                            _logProvider.Information("Renaming scenario {oldScenarioName} to  {newScenarioName}", change.OldName, change.Name);
                             DeleteScenario(change.Name);
                             GetScenario(change.Name);
                             break;
@@ -211,7 +211,7 @@ namespace MockEngine.Internal
             }
             catch (Exception e)
             {
-                _logProvider.Warning($"Error while handling scenario \"{change.Name}\" {change.ChangeType} change: {e.Message}");
+                _logProvider.Warning("Error while handling scenario {scenarioName} {changeType} change: {reason}", change.Name, change.ChangeType, e.Message);
             }
         }
         public MockScenario GetScenario(string scenarioName)
@@ -247,7 +247,7 @@ namespace MockEngine.Internal
             var scenarioStream = _scenarioResolver.Resolve(scenarioName);
             if (scenarioStream == null)
             {
-                _logProvider.Warning($"scenario \"{scenarioName}\" was not found.");
+                _logProvider.Warning("scenario {scenarioName} was not found.", scenarioName);
                 return null;
             }
             else
@@ -264,13 +264,13 @@ namespace MockEngine.Internal
                 catch( SyntaxErrorException e)
                 {
                     var message = $"error parsing scenario \"{scenarioName}\": {e.Message}";
-                    _logProvider.Error(message);
+                    _logProvider.Error(e, "error parsing scenario {scenarioName}: {reason}", scenarioName,e.Message);
                     throw new System.Exception(message,e);
                 }
                 catch (Exception e)
                 {
                     var message = $"error loading scenario \"{scenarioName}\": {e}";
-                    _logProvider.Error(message);
+                    _logProvider.Error(e, "error loading scenario \"{scenarioName}\": {reason}",scenarioName,e.Message);
                     throw new System.Exception(message,e);
                 }
                 finally

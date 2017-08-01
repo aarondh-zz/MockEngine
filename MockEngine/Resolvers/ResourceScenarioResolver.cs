@@ -70,15 +70,16 @@ namespace MockEngine.Resolvers
                     return scenarioStream;
                 }
             }
-            _logProvider.Warning($"scenario \"{resourcePath}\" was not found in any registered assembly");
-            _logProvider.Verbose($"valid resource names are:");
+            _logProvider.Warning("scenario {resourcePath} was not found in any registered assembly", resourcePath);
+            var names = new List<string>();
             foreach (var assembly in _assemblies)
             {
                 foreach (var resourceName in assembly.GetManifestResourceNames())
                 {
-                    _logProvider.Verbose($"resource \"{resourceName}\"");
+                    names.Add(resourceName);
                 }
             }
+            _logProvider.Verbose("valid resource names are: {names}", names);
             return null;
         }
 

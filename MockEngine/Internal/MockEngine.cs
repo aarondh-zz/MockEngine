@@ -90,7 +90,7 @@ namespace MockEngine.Internal
                                 scriptEngine.AddHostObject(property.Name, value);
                             }
                         }
-                        _logProvider.Verbose($"{property.Name} = {ToValueString(value)}");
+                        _logProvider.Verbose("{propertyName} = {propertyValue}", property.Name, value);
                     }
                 }
             }
@@ -176,7 +176,7 @@ namespace MockEngine.Internal
                 throw new ArgumentNullException(nameof(scenarioName));
             }
 
-            _logProvider.Verbose($"Invoking scenario \"" + scenarioName + "\"");
+            _logProvider.Verbose("Invoking scenario {scenarioName}", scenarioName);
 
             var scenario = _scenarioManager.GetScenario(scenarioName);
 
@@ -231,7 +231,7 @@ namespace MockEngine.Internal
                             }
                             else
                             {
-                                _logProvider.Warning($"action: {action} case expression did not return a boolean result");
+                                _logProvider.Warning("action: {action} case expression did not return a boolean result",action);
                             }
                         }
 
@@ -239,14 +239,13 @@ namespace MockEngine.Internal
                     catch (MockEngineException e)
                     {
                         var message = $"action: {action} exception: {e.Message}";
-                        _logProvider.Error(message);
+                        _logProvider.Error(e, "action: {action} exception: {message}", action, e.Message);
                         throw new MockEngineException(this.Name, scenarioName, message, e);
                     }
                     catch (Exception e)
                     {
-                        var message = $"action: {action} exception: {e.Message}";
-                        _logProvider.Error(message);
-                        throw new MockEngineException(this.Name, scenarioName, message, e);
+                        _logProvider.Error(e, "action: {action} exception: {message}", action, e.Message);
+                        throw new MockEngineException(this.Name, scenarioName, $"action: {action} exception: {e.Message}", e);
                     }
                 }
                 if (scenario.Global != null && !string.IsNullOrWhiteSpace(scenario.Global.After))
@@ -269,13 +268,13 @@ namespace MockEngine.Internal
 
             var reasonPhrase = $"scenario: \"{scenarioName}\" did not contain any matching actions for this request.";
 
-            _logProvider.Error(reasonPhrase);
+            _logProvider.Error("scenario: {scenarioName} did not contain any matching actions for this request.", scenarioName);
 
             return new MockEngineResponse() { ReasonPhrase = reasonPhrase };
         }
         private MockEngineResponse ExecuteAction(V8ScriptEngine scriptEngine, string scenarioName, MockAction action)
         {
-            _logProvider.Information($"executing action: {action}");
+            _logProvider.Information("executing action: {action}", action);
             var response = new MockEngineResponse() { Success = true };
             if (action.Before != null)
             {
@@ -345,13 +344,13 @@ namespace MockEngine.Internal
                     {
                         response.StatusCode = HttpStatusCode.InternalServerError;
                         response.ReasonPhrase = $"action {action} specified an invalid status code \"{mockResponse.StatusCode}\"";
-                        _logProvider.Warning(response.ReasonPhrase);
+                        _logProvider.Warning("action {action} specified an invalid status code {statusCode}", action, mockResponse.StatusCode);
                     }
                 }
                 else
                 {
                     response.StatusCode = HttpStatusCode.InternalServerError;
-                    _logProvider.Warning($"action {action} specified an invalid status code \"{mockResponse.StatusCode}\"");
+                    _logProvider.Warning("action {action} specified an invalid status code {statusCode}", action, mockResponse.StatusCode);
                 }
             }
             return response;
@@ -405,25 +404,25 @@ namespace MockEngine.Internal
             catch( TypeResolverException e)
             {
                 var message = $"response type \"{e.TypeName}\" not found: {e.Message}";
-                _logProvider.Error(message);
+                _logProvider.Error(e, "response type {typeName} not found: {reason}", e.TypeName, e.Message);
                 throw new MockEngineException(this.Name, scenarioName, message);
             }
             catch (YamlDotNet.Core.SyntaxErrorException e)
             {
                 var message = "syntax error building response: {e.Message}";
-                _logProvider.Error(message);
+                _logProvider.Error(e, "syntax error building response: {reason}", e.Message);
                 throw new MockEngineException(this.Name, scenarioName, message, e);
             }
             catch (YamlException e)
             {
                 var message = $"error deserializing response: {e.InnerException.Message} at {e.Source}";
-                _logProvider.Error(message);
+                _logProvider.Error("error deserializing response: {reason} at {source}", e.InnerException.Message,e.Source);
                 throw new MockEngineException(this.Name, scenarioName, message, e);
             }
             catch (Exception e)
             {
                 var message = $"error building response: {e.Message}";
-                _logProvider.Error(message);
+                _logProvider.Error("error building response: {reason}", e.Message);
                 throw new MockEngineException(this.Name, scenarioName, message, e);
             }
         }
@@ -482,7 +481,7 @@ namespace MockEngine.Internal
                     }
                     catch (Exception e)
                     {
-                        _logProvider.Warning($"Error processing expression <<{match.Value}>>: {e.Message}");
+                        _logProvider.Warning("Error processing expression <<{expression}>>: {reason}", match.Value, e.Message);
                         return outputYaml ? "~" : "";
                     }
                 }

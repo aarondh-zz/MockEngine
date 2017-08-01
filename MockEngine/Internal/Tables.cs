@@ -78,7 +78,7 @@ namespace MockEngine.Internal
                 dataSet.Tables.Add(dataTable);
                 if (mockTable.Rows == null)
                 {
-                    logProvider.Warning($"global table \"{tableName}\" does not declare any rows");
+                    logProvider.Warning("global table {tableName} does not declare any rows", tableName);
                 }
                 else
                 {
@@ -113,7 +113,7 @@ namespace MockEngine.Internal
                 if ( table == null )
                 {
                     var message = $"table \"{tableName} not found";
-                    _logProvider.Error(message);
+                    _logProvider.Error("table \"{tableName} not found", tableName);
                     throw new ArgumentOutOfRangeException(nameof(tableName), message);
                 }
                 return table;

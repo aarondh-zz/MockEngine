@@ -8,9 +8,13 @@ namespace MockEngine.Interfaces
 {
     public interface ILogProvider : IMockComponent
     {
-        void Warning(string message);
-        void Error(string message);
-        void Information(string message);
-        void Verbose(string message);
+        void Warning(string messageTemplate, params object[] propertyValues);
+        void Warning(Exception exception, string messageTemplate, params object[] propertyValues);
+        void Error(string messageTemplate, params object[] propertyValues);
+        void Error(Exception exception, string messageTemplate, params object[] propertyValues);
+        void Information(string messageTemplate, params object[] propertyValues);
+        void Information(Exception exception, string messageTemplate, params object[] propertyValues);
+        void Verbose(string messageTemplate, params object[] propertyValues);
+        void Verbose(Exception exception, string messageTemplate, params object[] propertyValues);
     }
 }

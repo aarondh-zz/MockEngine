@@ -57,9 +57,39 @@ namespace MockEngine.Resolvers
                 _pathSuffix = context.Settings.ScenarioResolverSettings.PathSuffix;
             }
         }
+        private string JoinPath(string pathA, string pathB, string pathSepparator = "\\")
+        {
+            if (string.IsNullOrWhiteSpace(pathA))
+            {
+                return pathB;
+            }
+            else if (string.IsNullOrWhiteSpace(pathB))
+            {
+                return pathA;
+            }
+            else if (pathA.EndsWith(pathSepparator))
+            {
+                if (pathB.StartsWith(pathSepparator))
+                {
+                    return pathA + pathB.Substring(pathSepparator.Length);
+                }
+                else
+                {
+                    return pathA + pathB;
+                }
+            }
+            else if (pathB.StartsWith(pathSepparator))
+            {
+                return pathA + pathB;
+            }
+            else
+            {
+                return pathA + pathSepparator + pathB;
+            }
+        }
         public Stream Resolve(string scenarioName)
         {
-            var filePath = Path.Combine( _pathBase,scenarioName.Replace("/","\\"),_pathSuffix);
+            var filePath = JoinPath( _pathBase,scenarioName.Replace("/","\\") + _pathSuffix);
             return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite|FileShare.Delete);
         }
 
@@ -109,7 +139,7 @@ namespace MockEngine.Resolvers
 
         private void Scenario_Error(object sender, ErrorEventArgs e)
         {
-            _logProvider.Warning($"Scenario file watcher reported error: {e.GetException().Message}");
+            _logProvider.Warning(e.GetException(), "Scenario file watcher reported error: {reason}", e.GetException().Message);
         }
 
         private void PostChange(IScenarioChange change)
@@ -122,7 +152,7 @@ namespace MockEngine.Resolvers
                 }
                 catch(Exception e)
                 {
-                    _logProvider.Warning($"Error reported from change handler: {e.Message}");
+                    _logProvider.Warning(e,"Error reported from change handler: {reason}",e.Message);
                 }
             }
         }
