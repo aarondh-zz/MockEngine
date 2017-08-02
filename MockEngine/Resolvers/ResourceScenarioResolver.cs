@@ -1,5 +1,6 @@
 ﻿using MockEngine.Configuration;
 using MockEngine.Interfaces;
+using MockEngine.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +17,7 @@ namespace MockEngine.Resolvers
         private HashSet<Assembly> _assemblies;
         private string _resourcePathBase;
         private string _resourcePathSuffix;
-        public ResourceScenarioResolver( )
+        public ResourceScenarioResolver()
         {
             _resourcePathBase = "";
 
@@ -26,7 +27,7 @@ namespace MockEngine.Resolvers
 
             RegisterAssembly(Assembly.GetCallingAssembly());
         }
-        public void Initialize( IMockContext context )
+        public void Initialize(IMockContext context)
         {
             if (context == null)
             {
@@ -49,23 +50,23 @@ namespace MockEngine.Resolvers
             {
                 _resourcePathSuffix = context.Settings.ScenarioResolverSettings.PathSuffix;
             }
-            foreach( var assembly in context.Settings.ScenarioResolverSettings.Assemblies)
+            foreach (var assembly in context.Settings.ScenarioResolverSettings.Assemblies)
             {
                 RegisterAssembly(Assembly.Load(assembly.Name));
             }
         }
-        public void RegisterAssembly( Assembly assembly)
+        public void RegisterAssembly(Assembly assembly)
         {
             _assemblies.Add(assembly);
         }
         public Stream Resolve(string scenarioName)
         {
-            var resourcePath = _resourcePathBase + scenarioName + _resourcePathSuffix;
+            var resourcePath = PathUtils.JoinPath(PathUtils.JoinPath(_resourcePathBase, scenarioName, "."), _resourcePathSuffix, ".");
             Stream scenarioStream;
             foreach (var assembly in _assemblies)
             {
                 scenarioStream = assembly.GetManifestResourceStream(resourcePath);
-                if ( scenarioStream != null)
+                if (scenarioStream != null)
                 {
                     return scenarioStream;
                 }
@@ -90,12 +91,12 @@ namespace MockEngine.Resolvers
             {
                 foreach (var resourceName in assembly.GetManifestResourceNames())
                 {
-                    if ( resourceName.StartsWith(_resourcePathBase)&&resourceName.EndsWith(_resourcePathSuffix))
+                    if (resourceName.StartsWith(_resourcePathBase) && resourceName.EndsWith(_resourcePathSuffix))
                     {
                         var scenarioName = resourceName.Substring(_resourcePathBase.Length, resourceName.Length - _resourcePathBase.Length - _resourcePathSuffix.Length);
                         scenarioNames.Add(scenarioName);
                     }
-                    
+
                 }
             }
             return scenarioNames;

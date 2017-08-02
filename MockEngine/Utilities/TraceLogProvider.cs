@@ -15,7 +15,7 @@ namespace MockEngine.Utilities
         {
             public class ParsedTemplate
             {
-                private static Regex _matcher = new Regex(@"\{(\{)|\}(\})|\{([^\{]+\)}", RegexOptions.Compiled);
+                private static Regex _matcher = new Regex(@"\{\{|\}\}|\{([^\{]+)\}", RegexOptions.Compiled);
                 public string Template { get; private set; }
                 public string Format { get; private set; }
                 public List<string> Properties { get; private set; }
@@ -70,7 +70,7 @@ namespace MockEngine.Utilities
                 get
                 {
                     var parsedTemplate = _messageTemplateParser.Parse(this.MessageTemplate);
-                    return string.Format(parsedTemplate.Format, _properties);
+                    return string.Format(parsedTemplate.Format, _propertyValues);
                 }
             }
             public IDictionary<string,object> Properties {

@@ -1,5 +1,6 @@
 ﻿using MockEngine.Configuration;
 using MockEngine.Interfaces;
+using MockEngine.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,14 +25,14 @@ namespace MockEngine.Resolvers
 
             public string OldName { get; set; }
         }
-        public FileScenarioResolver( )
+        public FileScenarioResolver()
         {
             _pathBase = "";
 
             _pathSuffix = ".yaml";
 
         }
-        public void Initialize( IMockContext context )
+        public void Initialize(IMockContext context)
         {
             if (context == null)
             {
@@ -57,40 +58,11 @@ namespace MockEngine.Resolvers
                 _pathSuffix = context.Settings.ScenarioResolverSettings.PathSuffix;
             }
         }
-        private string JoinPath(string pathA, string pathB, string pathSepparator = "\\")
-        {
-            if (string.IsNullOrWhiteSpace(pathA))
-            {
-                return pathB;
-            }
-            else if (string.IsNullOrWhiteSpace(pathB))
-            {
-                return pathA;
-            }
-            else if (pathA.EndsWith(pathSepparator))
-            {
-                if (pathB.StartsWith(pathSepparator))
-                {
-                    return pathA + pathB.Substring(pathSepparator.Length);
-                }
-                else
-                {
-                    return pathA + pathB;
-                }
-            }
-            else if (pathB.StartsWith(pathSepparator))
-            {
-                return pathA + pathB;
-            }
-            else
-            {
-                return pathA + pathSepparator + pathB;
-            }
-        }
+
         public Stream Resolve(string scenarioName)
         {
-            var filePath = JoinPath( _pathBase,scenarioName.Replace("/","\\") + _pathSuffix);
-            return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite|FileShare.Delete);
+            var filePath = PathUtils.JoinPath(_pathBase, scenarioName.Replace("/", "\\") + _pathSuffix);
+            return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
         }
 
         public IEnumerable<string> GetScenarioNames()
@@ -99,7 +71,7 @@ namespace MockEngine.Resolvers
             GetScenarioNames(_pathBase, scenarioNames);
             return scenarioNames;
         }
-        private void GetScenarioNames( string directory, List<string> scenarioNames)
+        private void GetScenarioNames(string directory, List<string> scenarioNames)
         {
             foreach (var filepath in Directory.EnumerateFiles(directory))
             {
@@ -122,7 +94,7 @@ namespace MockEngine.Resolvers
         private List<Action<IScenarioChange>> _changeHandlers = new List<Action<IScenarioChange>>();
         public void RegisterChangeHandler(Action<IScenarioChange> onChange)
         {
-            if ( _fileSystemWatcher == null)
+            if (_fileSystemWatcher == null)
             {
                 _fileSystemWatcher = new FileSystemWatcher(_pathBase);
                 _fileSystemWatcher.Changed += Scenario_Changed;
@@ -139,20 +111,20 @@ namespace MockEngine.Resolvers
 
         private void Scenario_Error(object sender, ErrorEventArgs e)
         {
-            _logProvider.Warning(e.GetException(), "Scenario file watcher reported error: {reason}", e.GetException().Message);
+            _logProvider.Warning($"Scenario file watcher reported error: {e.GetException().Message}");
         }
 
         private void PostChange(IScenarioChange change)
         {
-            for( int i = 0; i < _changeHandlers.Count;i++ )
+            for (int i = 0; i < _changeHandlers.Count; i++)
             {
                 try
                 {
                     _changeHandlers[i](change);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    _logProvider.Warning(e,"Error reported from change handler: {reason}",e.Message);
+                    _logProvider.Warning($"Error reported from change handler: {e.Message}");
                 }
             }
         }

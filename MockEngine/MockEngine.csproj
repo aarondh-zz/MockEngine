@@ -89,6 +89,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\DataContractHelper.cs" />
     <Compile Include="Utilities\DynamicXml.cs" />
+    <Compile Include="Utilities\PathUtils.cs" />
     <Compile Include="Utilities\TraceLogProvider.cs" />
     <Compile Include="Utilities\XmlExtensions.cs" />
     <Compile Include="Utilities\YamlExtensions.cs" />
